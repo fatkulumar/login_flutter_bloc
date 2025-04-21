@@ -5,6 +5,8 @@ class CustomTextField extends StatelessWidget {
   final String hint;
   final IconData icon;
   final bool obscure;
+  final TextEditingController? controller;
+  final Widget? suffixIcon;
 
   const CustomTextField({
     super.key,
@@ -12,17 +14,20 @@ class CustomTextField extends StatelessWidget {
     required this.hint,
     required this.icon,
     this.obscure = false,
+    this.controller,
+    this.suffixIcon,
   });
 
   @override
   Widget build(BuildContext context) {
     return TextField(
+      controller: controller,
       obscureText: obscure,
       decoration: InputDecoration(
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
         hintText: hint,
         labelText: label,
-        suffixIcon: Icon(icon),
+        suffixIcon: suffixIcon,
       ),
     );
   }
