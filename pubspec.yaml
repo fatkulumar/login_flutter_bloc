@@ -10,6 +10,9 @@ dependencies:
   flutter:
     sdk: flutter
   google_fonts: ^6.2.1
+  http: ^1.3.0
+  flutter_dotenv: ^5.2.1
+  flutter_bloc: ^9.1.0
 
 dev_dependencies:
   flutter_test:
@@ -19,5 +22,6 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
+  - assets/.env
   - assets/images/login-image.png
   - assets/images/close-image.png

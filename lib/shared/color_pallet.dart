@@ -10,7 +10,7 @@ class ColorPallet {
     500: Color(0xFF02020e), // 60%
     600: Color(0xFF01010a), // 70%
     800: Color(0xFF010107), // 80%
-    900: Color(0xFF000003), // 100%
-    700: Color(0xFF000000), // 90%
+    900: Color(0xFF000003), // 90%
+    700: Color(0xFF000000), // 100%
   });
 }

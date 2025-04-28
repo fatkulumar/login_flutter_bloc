@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_2/shared/shared.dart';
 import 'package:flutter_application_2/pages/components/register_form_sheet.dart';
+import 'package:flutter_application_2/pages/components/login_form_sheet.dart';
 import 'package:flutter_application_2/pages/components/auth_button.dart';
 
 class WelcomePages extends StatelessWidget {
@@ -44,7 +45,7 @@ class WelcomePages extends StatelessWidget {
             SizedBox(height: 15),
             AuthButton(
               text: "Login",
-              onPressed: () => showRegisterFormSheet(context), // nanti diganti showLoginFormSheet
+              onPressed: () => showLoginFormSheet(context), // nanti diganti showLoginFormSheet
               backgroundColor: primaryColor,
               borderColor: secondaryColor,
               textColor: secondaryColor,

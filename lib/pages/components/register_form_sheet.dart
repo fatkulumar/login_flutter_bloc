@@ -41,7 +41,6 @@ class _RegisterFormSheetState extends State<_RegisterFormSheet> {
     final password = passwordController.text;
     final confirmPassword = confirmPasswordController.text;
 
-    // TODO: Lakukan validasi dan aksi register di sini
     print('Email: $email, Course: $course, password: $password, confirmPassword: $confirmPassword');
   }
 
