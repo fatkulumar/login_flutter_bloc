@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_2/blocs/auth/bloc/login_bloc.dart';
+import 'package:flutter_application_2/blocs/auth/login/bloc/login_bloc.dart';
 import 'package:flutter_application_2/pages/welcome_pages.dart';
 import 'package:flutter_application_2/repositories/auth/login_repository.dart';
 import 'package:flutter_application_2/services/auth/login_api.dart';

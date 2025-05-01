@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_2/blocs/auth/bloc/login_bloc.dart';
+import 'package:flutter_application_2/blocs/auth/login/bloc/login_bloc.dart';
 import 'package:flutter_application_2/pages/widgets/custom_button.dart';
 import 'package:flutter_application_2/pages/widgets/header_text.dart';
 import 'package:flutter_application_2/pages/widgets/custom_text_field.dart';
@@ -8,46 +8,75 @@ import 'package:flutter_application_2/services/auth/login_api.dart';
 import 'package:flutter_application_2/shared/shared.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+String cachedEmail = '';
+String cachedPassword = '';
+
 void showLoginFormSheet(BuildContext context) {
   final LoginApi api = LoginApi();
   final loginRepository = LoginRepository(api: api);
+
   showModalBottomSheet(
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
     context: context,
     builder: (context) => BlocProvider(
       create: (_) => LoginBloc(loginRepository),
-      child: const _LoginFormSheet(),
+      child: _LoginFormSheet(
+        initialEmail: cachedEmail,
+        initialPassword: cachedPassword,
+        onValueChanged: (email, password) {
+          cachedEmail = email;
+          cachedPassword = password;
+        },
+      ),
     ),
   );
 }
 
+
 class _LoginFormSheet extends StatefulWidget {
-  const _LoginFormSheet(); // ← ini cara modern
+  final String initialEmail;
+  final String initialPassword;
+  final void Function(String email, String password)? onValueChanged;
+
+  const _LoginFormSheet({
+    required this.initialEmail,
+    required this.initialPassword,
+    required this.onValueChanged,
+  });
 
   @override
   State<_LoginFormSheet> createState() => _LoginFormSheetState();
 }
 
 class _LoginFormSheetState extends State<_LoginFormSheet> {
-  final TextEditingController emailController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
+  late TextEditingController emailController;
+  late TextEditingController passwordController;
+
+  final _formKey = GlobalKey<FormState>();
+  bool _isHiddenPassword = true;
+  bool _isChecked = false;
+
+  @override
+  void initState() {
+    super.initState();
+    emailController = TextEditingController(text: widget.initialEmail);
+    passwordController = TextEditingController(text: widget.initialPassword);
+  }
 
   @override
   void dispose() {
+    widget.onValueChanged?.call(emailController.text, passwordController.text);
     emailController.dispose();
     passwordController.dispose();
     super.dispose();
   }
 
-  void _login() {
+  void _loginSubmit() {
     if (_formKey.currentState?.validate() ?? false) {
-      final email = emailController.text;
-      final password = passwordController.text;
-
       context.read<LoginBloc>().add(LoginSubmitted(
-        email: email,
-        password: password,
+        email: emailController.text,
+        password: passwordController.text,
       ));
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -62,13 +91,8 @@ class _LoginFormSheetState extends State<_LoginFormSheet> {
     });
   }
 
-  bool _isHiddenPassword = true;
-  bool _isChecked = false;
-
-  final _formKey = GlobalKey<FormState>();
-
   @override
-   Widget build(BuildContext context) {
+  Widget build(BuildContext context) {
     return BlocListener<LoginBloc, LoginState>(
       listener: (context, state) {
         if (state is LoginLoading) {
@@ -78,6 +102,8 @@ class _LoginFormSheetState extends State<_LoginFormSheet> {
             builder: (context) => const Center(child: CircularProgressIndicator()),
           );
         } else if (state is LoginSuccess) {
+          cachedEmail = '';
+          cachedPassword = '';
           Navigator.pop(context); // tutup loading
           Navigator.pop(context); // tutup bottom sheet
           ScaffoldMessenger.of(context).showSnackBar(
@@ -102,6 +128,7 @@ class _LoginFormSheetState extends State<_LoginFormSheet> {
           ),
           child: Form(
             key: _formKey,
+            autovalidateMode: AutovalidateMode.onUserInteraction,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -116,8 +143,7 @@ class _LoginFormSheetState extends State<_LoginFormSheet> {
                     if (value == null || value.isEmpty) {
                       return 'Email tidak boleh kosong';
                     }
-                    if (!RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
-                        .hasMatch(value)) {
+                    if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
                       return 'Format email tidak valid';
                     }
                     return null;
@@ -136,39 +162,38 @@ class _LoginFormSheetState extends State<_LoginFormSheet> {
                         ? Icons.lock_outline
                         : Icons.lock_open_outlined),
                   ),
-                  validator: (value) {
+                 validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Password tidak boleh kosong';
                     }
+
+                    final passwordRegex = RegExp(r'^(?=.*[A-Z])(?=.*\d)(?=.*[!@#\$&*~])[A-Za-z\d!@#\$&*~]{8,}$');
+                    if (!passwordRegex.hasMatch(value)) {
+                      return 'Password minimal 8 karakter,\n'
+                            'mengandung huruf kapital, angka, dan simbol (!@#\$&*~)';
+                    }
+
                     return null;
                   },
                 ),
                 const SizedBox(height: 20),
                 Row(
                   children: [
-                    Container(
-                      width: 20,
-                      height: 20,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFD7D7D7),
-                        border: Border.all(color: primaryColor, width: 3),
-                        borderRadius: BorderRadius.circular(5),
-                      ),
-                      child: Checkbox(
-                        value: _isChecked,
-                        onChanged: (value) {
-                          setState(() {
-                            _isChecked = value ?? false;
-                          });
-                        },
-                        checkColor: const Color(0xFFD7D7D7),
-                      ),
+                    Checkbox(
+                      value: _isChecked,
+                      onChanged: (value) {
+                        setState(() {
+                          _isChecked = value ?? false;
+                        });
+                      },
                     ),
                     const SizedBox(width: 5),
                     Text(
                       "Remember Me",
                       style: whiteTextStyle.copyWith(
-                          color: primaryColor, fontSize: 12),
+                        color: primaryColor,
+                        fontSize: 12,
+                      ),
                     ),
                     const Spacer(),
                     TextButton(
@@ -178,7 +203,9 @@ class _LoginFormSheetState extends State<_LoginFormSheet> {
                       child: Text(
                         "Forgot Password?",
                         style: whiteTextStyle.copyWith(
-                            color: primaryColor, fontSize: 12),
+                          color: primaryColor,
+                          fontSize: 12,
+                        ),
                       ),
                     ),
                   ],
@@ -186,7 +213,7 @@ class _LoginFormSheetState extends State<_LoginFormSheet> {
                 const SizedBox(height: 20),
                 CustomButton(
                   text: "Login",
-                  onPressed: _login,
+                  onPressed: _loginSubmit,
                   backgroundColor: Colors.blue,
                   textColor: Colors.white,
                 ),
