@@ -7,6 +7,7 @@ import 'package:flutter_application_2/repositories/auth/register_repository.dart
 import 'package:flutter_application_2/services/auth/register_api.dart';
 import 'package:flutter_application_2/shared/shared.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_application_2/pages/components/login_form_sheet.dart';
 
 String cachedEmail = '';
 String cachedName = '';
@@ -101,14 +102,18 @@ class _RegisterFormSheetState extends State<_RegisterFormSheet> {
 
   void _registerSubmit() {
     if (_formKey.currentState?.validate() ?? false) {
-      context.read<RegisterBloc>().add(RegisterSubmitted(
-        email: emailController.text,
-        name: nameController.text,
-        password: passwordController.text,
-        passwordConfimation: passwordConfirmationController.text
-      ));
+      context.read<RegisterBloc>().add(
+        RegisterSubmitted(
+          email: emailController.text,
+          name: nameController.text,
+          password: passwordController.text,
+          passwordConfimation: passwordConfirmationController.text,
+        ),
+      );
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: const Text('Form Tidak Valid')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: const Text('Form Tidak Valid')));
     }
   }
 
@@ -134,18 +139,34 @@ class _RegisterFormSheetState extends State<_RegisterFormSheet> {
           showDialog(
             context: context,
             barrierDismissible: false,
-            builder: (context) => const Center(child: CircularProgressIndicator(),));
+            builder:
+                (context) => const Center(child: CircularProgressIndicator()),
+          );
         } else if (state is RegisterSuccess) {
-          cachedEmail = "";
-          cachedName = "";
-          cachedPassword = "";
-          cachedPasswordConfirmation = "";
+          // Reset cache dan controllers
+          setState(() {
+            cachedEmail = "";
+            cachedName = "";
+            cachedPassword = "";
+            cachedPasswordConfirmation = "";
+
+            // Reset form input setelah registrasi berhasil
+            emailController.clear();
+            nameController.clear();
+            passwordController.clear();
+            passwordConfirmationController.clear();
+          });
+
           Navigator.pop(context);
           Navigator.pop(context);
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.message)));
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(state.message)));
         } else if (state is RegisterFailure) {
           Navigator.pop(context);
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.message)));
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(state.message)));
         }
       },
       child: Padding(
@@ -215,10 +236,12 @@ class _RegisterFormSheetState extends State<_RegisterFormSheet> {
                         return 'Password tidak boleh kosong';
                       }
 
-                      final passwordRegex = RegExp(r'^(?=.*[A-Z])(?=.*\d)(?=.*[!@#\$&*~])[A-Za-z\d!@#\$&*~]{8,}$');
+                      final passwordRegex = RegExp(
+                        r'^(?=.*[A-Z])(?=.*\d)(?=.*[!@#\$&*~])[A-Za-z\d!@#\$&*~]{8,}$',
+                      );
                       if (!passwordRegex.hasMatch(value)) {
                         return 'Password minimal 8 karakter,\n'
-                              'mengandung huruf kapital, angka, dan simbol (!@#\$&*~)';
+                            'mengandung huruf kapital, angka, dan simbol (!@#\$&*~)';
                       }
 
                       return null;
@@ -259,10 +282,17 @@ class _RegisterFormSheetState extends State<_RegisterFormSheet> {
                   const SizedBox(height: 10),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: const [
-                      Text("Already have an account?"),
-                      SizedBox(width: 5),
-                      Text("Login", style: TextStyle(color: Colors.red)),
+                    children: [
+                      const Text("Already have an account?"),
+                      const SizedBox(width: 5),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          showLoginFormSheet(context);
+                        },
+                        child: const Text("Login", style: TextStyle(color: Colors.red),),
+                      ),
+                      // TextButton("Login", style: TextStyle(color: Colors.red)),
                     ],
                   ),
                 ],

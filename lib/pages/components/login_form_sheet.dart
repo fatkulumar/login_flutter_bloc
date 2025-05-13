@@ -7,7 +7,9 @@ import 'package:flutter_application_2/repositories/auth/login_repository.dart';
 import 'package:flutter_application_2/services/auth/login_api.dart';
 import 'package:flutter_application_2/shared/shared.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_application_2/pages/components/register_form_sheet.dart';
 
+// Variabel Global
 String cachedEmail = '';
 String cachedPassword = '';
 
@@ -32,7 +34,6 @@ void showLoginFormSheet(BuildContext context) {
     ),
   );
 }
-
 
 class _LoginFormSheet extends StatefulWidget {
   final String initialEmail;
@@ -66,6 +67,7 @@ class _LoginFormSheetState extends State<_LoginFormSheet> {
 
   @override
   void dispose() {
+    // Simpan data terakhir saat form ditutup
     widget.onValueChanged?.call(emailController.text, passwordController.text);
     emailController.dispose();
     passwordController.dispose();
@@ -74,10 +76,12 @@ class _LoginFormSheetState extends State<_LoginFormSheet> {
 
   void _loginSubmit() {
     if (_formKey.currentState?.validate() ?? false) {
-      context.read<LoginBloc>().add(LoginSubmitted(
-        email: emailController.text,
-        password: passwordController.text,
-      ));
+      context.read<LoginBloc>().add(
+        LoginSubmitted(
+          email: emailController.text,
+          password: passwordController.text,
+        ),
+      );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Form belum valid')),
@@ -85,7 +89,7 @@ class _LoginFormSheetState extends State<_LoginFormSheet> {
     }
   }
 
-  void _tootlePasswordView() {
+  void _togglePasswordView() {
     setState(() {
       _isHiddenPassword = !_isHiddenPassword;
     });
@@ -102,10 +106,19 @@ class _LoginFormSheetState extends State<_LoginFormSheet> {
             builder: (context) => const Center(child: CircularProgressIndicator()),
           );
         } else if (state is LoginSuccess) {
-          cachedEmail = '';
-          cachedPassword = '';
-          Navigator.pop(context); // tutup loading
+          // Reset data global setelah login berhasil
+          setState(() {
+            cachedEmail = ''; // Reset email yang tersimpan
+            cachedPassword = ''; // Reset password yang tersimpan
+
+            emailController.clear();
+            passwordController.clear();
+          });
+
+          // Tutup loading dialog dan BottomSheet
+          Navigator.pop(context); // tutup loading dialog
           Navigator.pop(context); // tutup bottom sheet
+
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(state.message)),
           );
@@ -116,125 +129,143 @@ class _LoginFormSheetState extends State<_LoginFormSheet> {
           );
         }
       },
-      child: Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
-        ),
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: secondaryColor,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(40)),
+      child: SingleChildScrollView(
+        child: Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
           ),
-          child: Form(
-            key: _formKey,
-            autovalidateMode: AutovalidateMode.onUserInteraction,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const HeaderText(title: "Welcome Back", subtitle: "Login"),
-                const SizedBox(height: 20),
-                CustomTextField(
-                  controller: emailController,
-                  label: "Username/Email",
-                  hint: "example@email.com",
-                  icon: Icons.email_outlined,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Email tidak boleh kosong';
-                    }
-                    if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
-                      return 'Format email tidak valid';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 20),
-                CustomTextField(
-                  obscure: _isHiddenPassword,
-                  controller: passwordController,
-                  label: "Password",
-                  hint: "password",
-                  icon: Icons.lock_outline,
-                  suffixIcon: IconButton(
-                    onPressed: _tootlePasswordView,
-                    icon: Icon(_isHiddenPassword
-                        ? Icons.lock_outline
-                        : Icons.lock_open_outlined),
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: secondaryColor,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(40)),
+            ),
+            child: Form(
+              key: _formKey,
+              autovalidateMode: AutovalidateMode.onUserInteraction,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const HeaderText(title: "Welcome Back", subtitle: "Login"),
+                  const SizedBox(height: 20),
+                  CustomTextField(
+                    controller: emailController,
+                    label: "Username/Email",
+                    hint: "example@email.com",
+                    icon: Icons.email_outlined,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Email tidak boleh kosong';
+                      }
+                      if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
+                        return 'Format email tidak valid';
+                      }
+                      return null;
+                    },
                   ),
-                 validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Password tidak boleh kosong';
-                    }
-
-                    final passwordRegex = RegExp(r'^(?=.*[A-Z])(?=.*\d)(?=.*[!@#\$&*~])[A-Za-z\d!@#\$&*~]{8,}$');
-                    if (!passwordRegex.hasMatch(value)) {
-                      return 'Password minimal 8 karakter,\n'
-                            'mengandung huruf kapital, angka, dan simbol (!@#\$&*~)';
-                    }
-
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 20),
-                Row(
-                  children: [
-                    Checkbox(
-                      value: _isChecked,
-                      onChanged: (value) {
-                        setState(() {
-                          _isChecked = value ?? false;
-                        });
-                      },
-                    ),
-                    const SizedBox(width: 5),
-                    Text(
-                      "Remember Me",
-                      style: whiteTextStyle.copyWith(
-                        color: primaryColor,
-                        fontSize: 12,
+                  const SizedBox(height: 20),
+                  CustomTextField(
+                    obscure: _isHiddenPassword,
+                    controller: passwordController,
+                    label: "Password",
+                    hint: "password",
+                    icon: Icons.lock_outline,
+                    suffixIcon: IconButton(
+                      onPressed: _togglePasswordView,
+                      icon: Icon(
+                        _isHiddenPassword
+                            ? Icons.lock_outline
+                            : Icons.lock_open_outlined,
                       ),
                     ),
-                    const Spacer(),
-                    TextButton(
-                      onPressed: () {
-                        print('Forgot password tapped');
-                      },
-                      child: Text(
-                        "Forgot Password?",
-                        style: whiteTextStyle.copyWith(
-                          color: primaryColor,
-                          fontSize: 12,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Password tidak boleh kosong';
+                      }
+
+                      final passwordRegex = RegExp(
+                        r'^(?=.*[A-Z])(?=.*\d)(?=.*[!@#\$&*~])[A-Za-z\d!@#\$&*~]{8,}$',
+                      );
+                      if (!passwordRegex.hasMatch(value)) {
+                        return 'Password minimal 8 karakter,\n'
+                            'mengandung huruf kapital, angka, dan simbol (!@#\$&*~)';
+                      }
+
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 20),
+                  Row(
+                    children: [
+                      Checkbox(
+                        value: _isChecked,
+                        onChanged: (value) {
+                          setState(() {
+                            _isChecked = value ?? false;
+                          });
+                        },
+                      ),
+                      const SizedBox(width: 5),
+                      Expanded(
+                        child: Wrap(
+                          children: [
+                            Text(
+                              "Remember Me",
+                              style: whiteTextStyle.copyWith(
+                                color: primaryColor,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                CustomButton(
-                  text: "Login",
-                  onPressed: _loginSubmit,
-                  backgroundColor: Colors.blue,
-                  textColor: Colors.white,
-                ),
-                const SizedBox(height: 10),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text("Don't have an account?"),
-                    const SizedBox(width: 5),
-                    TextButton(
-                      onPressed: () {
-                        print('Register tapped');
-                      },
-                      child: const Text(
-                        "Register",
-                        style: TextStyle(color: Colors.red),
+                      const Spacer(),
+                      Expanded(
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: TextButton(
+                            onPressed: () {
+                              print('Forgot password tapped');
+                            },
+                            child: Text(
+                              "Forgot Password?",
+                              style: whiteTextStyle.copyWith(
+                                color: primaryColor,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-              ],
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  CustomButton(
+                    text: "Login",
+                    onPressed: _loginSubmit,
+                    backgroundColor: Colors.blue,
+                    textColor: Colors.white,
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text("Don't have an account?"),
+                      const SizedBox(width: 5),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          showRegisterFormSheet(context);
+                        },
+                        child: const Text(
+                          "Register",
+                          style: TextStyle(color: Colors.red),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         ),
