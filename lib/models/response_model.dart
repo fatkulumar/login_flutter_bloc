@@ -24,10 +24,23 @@ class ResponseModel<T> {
       success: json['success'] ?? false,
       code: json['code'] ?? 0,
       message: json['message'] ?? 'No Message',
-      data:
-          json['data'] != null
-              ? DataModel<T>.fromJson(json['data'], fromJsonT)
-              : null,
+      data: DataModel<T>(
+        currentPage: 1,
+        data: (json['data'] as List)
+            .map((item) => fromJsonT(item as Map<String, dynamic>))
+            .toList(),
+        firstPageUrl: '',
+        from: 0,
+        lastPage: 1,
+        lastPageUrl: '',
+        links: [],
+        nextPageUrl: null,
+        path: '',
+        perPage: 10,
+        prevPageUrl: null,
+        to: 0,
+        total: 0,
+      ),
     );
   }
 

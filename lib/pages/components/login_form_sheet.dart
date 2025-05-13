@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_2/blocs/auth/login/bloc/login_bloc.dart';
+import 'package:flutter_application_2/home.dart';
 import 'package:flutter_application_2/pages/widgets/custom_button.dart';
 import 'package:flutter_application_2/pages/widgets/header_text.dart';
 import 'package:flutter_application_2/pages/widgets/custom_text_field.dart';
 import 'package:flutter_application_2/repositories/auth/login_repository.dart';
+import 'package:flutter_application_2/repositories/category/category_repository.dart';
 import 'package:flutter_application_2/services/auth/login_api.dart';
+import 'package:flutter_application_2/services/category/category_api.dart';
 import 'package:flutter_application_2/shared/shared.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_application_2/pages/components/register_form_sheet.dart';
+import 'package:flutter_application_2/blocs/category/bloc/category_bloc.dart';
 
 // Variabel Global
 String cachedEmail = '';
@@ -122,6 +126,15 @@ class _LoginFormSheetState extends State<_LoginFormSheet> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(state.message)),
           );
+          Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => BlocProvider(
+              create: (_) => CategoryBloc(CategoryRepository(api: CategoryApi()))..add(LoadCategory()), // inisialisasi bloc
+              child: const Home(),
+            ),
+          ),
+        );
         } else if (state is LoginFailure) {
           Navigator.pop(context); // tutup loading
           ScaffoldMessenger.of(context).showSnackBar(
@@ -186,10 +199,10 @@ class _LoginFormSheetState extends State<_LoginFormSheet> {
                       final passwordRegex = RegExp(
                         r'^(?=.*[A-Z])(?=.*\d)(?=.*[!@#\$&*~])[A-Za-z\d!@#\$&*~]{8,}$',
                       );
-                      if (!passwordRegex.hasMatch(value)) {
-                        return 'Password minimal 8 karakter,\n'
-                            'mengandung huruf kapital, angka, dan simbol (!@#\$&*~)';
-                      }
+                      // if (!passwordRegex.hasMatch(value)) {
+                      //   return 'Password minimal 8 karakter,\n'
+                      //       'mengandung huruf kapital, angka, dan simbol (!@#\$&*~)';
+                      // }
 
                       return null;
                     },
