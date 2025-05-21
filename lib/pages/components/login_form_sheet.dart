@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_2/blocs/auth/login/bloc/login_bloc.dart';
-import 'package:flutter_application_2/home.dart';
+import 'package:flutter_application_2/pages/home.dart';
 import 'package:flutter_application_2/pages/widgets/custom_button.dart';
 import 'package:flutter_application_2/pages/widgets/header_text.dart';
 import 'package:flutter_application_2/pages/widgets/custom_text_field.dart';
