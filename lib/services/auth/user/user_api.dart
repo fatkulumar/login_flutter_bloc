@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:flutter_application_2/models/response_model.dart';
-import 'package:flutter_application_2/models/token_model.dart';
 import 'package:flutter_application_2/models/user/user_model.dart';
 import 'package:flutter_application_2/utils/token_storage.dart';
 import 'package:http/http.dart' as http;

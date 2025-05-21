@@ -9,9 +9,6 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_application_2/blocs/auth/login/bloc/login_bloc.dart';
 import 'package:flutter_application_2/blocs/category/bloc/category_bloc.dart';
 
-import 'package:flutter_application_2/pages/home.dart';
-import 'package:flutter_application_2/pages/welcome_pages.dart';
-
 import 'package:flutter_application_2/repositories/auth/login_repository.dart';
 import 'package:flutter_application_2/repositories/category/category_repository.dart';
 
