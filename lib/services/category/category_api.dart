@@ -63,7 +63,18 @@ class CategoryApi {
           (json) => CategoryModel.fromJson(json),
         );
       } else {
-        throw Exception('Failed to add data form api');
+        return ResponseModel<CategoryModel>(
+          success: jsonData['status'] ?? false,
+          code: jsonData['code'] ?? response.statusCode,
+          message: jsonData['message'] ?? 'Terjadi kesalahan',
+          singleData: null,
+          errors:
+              jsonData['data'] is Map<String, dynamic>
+                  ? (jsonData['data'] as Map<String, dynamic>).map(
+                    (key, value) => MapEntry(key, List<String>.from(value)),
+                  )
+                  : null,
+        );
       }
     } catch (e) {
       throw Exception('Error: $e');
@@ -86,14 +97,25 @@ class CategoryApi {
         },
         body: json.encode({'id': id, 'name': name}),
       );
+      final jsonData = json.decode(response.body);
       if (response.statusCode == 200) {
-        final jsonData = json.decode(response.body);
         return ResponseModel<CategoryModel>.fromJsonForSingle(
           jsonData,
           (json) => CategoryModel.fromJson(json),
         );
       } else {
-        throw Exception('Failed to update data form api');
+        return ResponseModel<CategoryModel>(
+          success: jsonData['status'] ?? false,
+          code: jsonData['code'] ?? response.statusCode,
+          message: jsonData['message'] ?? 'Terjadi kesalahan',
+          singleData: null,
+          errors:
+              jsonData['data'] is Map<String, dynamic>
+                  ? (jsonData['data'] as Map<String, dynamic>).map(
+                    (key, value) => MapEntry(key, List<String>.from(value)),
+                  )
+                  : null,
+        );
       }
     } catch (e) {
       throw Exception('Error: $e');

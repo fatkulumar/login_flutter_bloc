@@ -65,7 +65,10 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
             );
           }
         } else {
-          emit(CategoryFailure('Tidak ada data yang ditambahkan.'));
+          final errors = response.errors?.values
+            .expand((messages) => messages)
+            .join('\n') ?? 'Terjadi kesalahan';
+          emit(CategoryFailure('Gagal menambahkan data:\n$errors'));
         }
       } catch (e) {
         emit(CategoryFailure('Gagal menambahkan data: $e'));
@@ -80,8 +83,10 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
         );
 
         if (response.singleData == null) {
-          emit(CategoryFailure('Data gagal diupdate.'));
-          return;
+          final errors = response.errors?.values
+            .expand((messages) => messages)
+            .join('\n') ?? 'Terjadi kesalahan';
+          emit(CategoryFailure('Gagal update data:\n$errors'));
         }
 
         final updatedCategory = response.singleData!;

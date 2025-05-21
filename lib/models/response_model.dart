@@ -6,6 +6,7 @@ class ResponseModel<T> {
   final String message;
   final DataModel<T>? data;
   final T? singleData; // Untuk objek tunggal
+  final Map<String, List<String>>? errors;
 
   ResponseModel({
     required this.success,
@@ -13,6 +14,7 @@ class ResponseModel<T> {
     required this.message,
     this.data,
     this.singleData, // Menambahkan singleData untuk objek tunggal
+    this.errors,
   });
 
   // Untuk DataModel (Paginasi)
@@ -26,9 +28,10 @@ class ResponseModel<T> {
       message: json['message'] ?? 'No Message',
       data: DataModel<T>(
         currentPage: 1,
-        data: (json['data'] as List)
-            .map((item) => fromJsonT(item as Map<String, dynamic>))
-            .toList(),
+        data:
+            (json['data'] as List)
+                .map((item) => fromJsonT(item as Map<String, dynamic>))
+                .toList(),
         firstPageUrl: '',
         from: 0,
         lastPage: 1,
