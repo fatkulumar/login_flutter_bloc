@@ -13,16 +13,22 @@ class UserBloc extends Bloc<UserEvent, UserState> {
       emit(UserLoading());
       try {
         final response = await userRepository.getUser();
-        final user = response.singleData!;
         if (response.code == 200) {
           emit(
             UserLoaded(
               code: response.code,
               message: response.message,
               success: response.success,
-              data: user,
+              data: response.singleData!,
             ),
           );
+        } else {
+          final errorMessage =
+              response.message.isNotEmpty
+                  ? response.message
+                  : 'Gagal memuat data user (code: ${response.code})';
+
+          emit(UserFailure(errorMessage));
         }
       } catch (e) {
         emit(UserFailure('Failed get data: $e'));

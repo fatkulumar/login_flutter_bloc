@@ -25,9 +25,15 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
               data: categories,
             ),
           );
+        } else {
+          emit(
+            CategoryFailure(
+              'Gagal mengambil data:\n${response.message} (code: ${response.code})',
+            ),
+          );
         }
       } catch (e) {
-        emit(CategoryFailure('Failed get data: $e'));
+        emit(CategoryFailure('Terjadi Kesalahan Ketika Mengambil Data: $e'));
       }
     });
 
@@ -65,13 +71,33 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
             );
           }
         } else {
-          final errors = response.errors?.values
-            .expand((messages) => messages)
-            .join('\n') ?? 'Terjadi kesalahan';
+          final errors =
+              response.errors?.values
+                  .expand((messages) => messages)
+                  .join('\n') ??
+              'Terjadi kesalahan';
           emit(CategoryFailure('Gagal menambahkan data:\n$errors'));
+          final currentState = state as CategoryLoaded;
+          emit(
+            CategoryLoaded(
+              code: currentState.code,
+              message: "Reload Data Category",
+              success: currentState.success,
+              data: currentState.data,
+            ),
+          );
         }
       } catch (e) {
-        emit(CategoryFailure('Gagal menambahkan data: $e'));
+        emit(CategoryFailure('Terjadi Kesalahan Ketika Menambahkan Data: $e'));
+        final currentState = state as CategoryLoaded;
+        emit(
+          CategoryLoaded(
+            code: currentState.code,
+            message: "Reload Data Category",
+            success: currentState.success,
+            data: currentState.data,
+          ),
+        );
       }
     });
 
@@ -81,12 +107,23 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
           event.id,
           event.name,
         );
-
         if (response.singleData == null) {
-          final errors = response.errors?.values
-            .expand((messages) => messages)
-            .join('\n') ?? 'Terjadi kesalahan';
+          final errors =
+              response.errors?.values
+                  .expand((messages) => messages)
+                  .join('\n') ??
+              'Terjadi kesalahan';
           emit(CategoryFailure('Gagal update data:\n$errors'));
+          final currentState = state as CategoryLoaded;
+          emit(
+            CategoryLoaded(
+              code: currentState.code,
+              message: "Reload Data Category",
+              success: currentState.success,
+              data: currentState.data,
+            ),
+          );
+          return;
         }
 
         final updatedCategory = response.singleData!;
@@ -121,7 +158,16 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
           );
         }
       } catch (e) {
-        emit(CategoryFailure('Gagal update data: $e'));
+        emit(CategoryFailure('Terjadi Kesalahan Ketika Update Data: $e'));
+        final currentState = state as CategoryLoaded;
+        emit(
+          CategoryLoaded(
+            code: currentState.code,
+            message: "Reload Data Category",
+            success: currentState.success,
+            data: currentState.data,
+          ),
+        );
       }
     });
 
@@ -151,9 +197,27 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
           }
         } else {
           emit(CategoryFailure(response.message));
+          final currentState = state as CategoryLoaded;
+          emit(
+            CategoryLoaded(
+              code: currentState.code,
+              message: "Reload Data Category",
+              success: currentState.success,
+              data: currentState.data,
+            ),
+          );
         }
       } catch (e) {
         emit(CategoryFailure('Terjadi kesalahan saat menghapus data: $e'));
+        final currentState = state as CategoryLoaded;
+        emit(
+          CategoryLoaded(
+            code: currentState.code,
+            message: "Reload Data Category",
+            success: currentState.success,
+            data: currentState.data,
+          ),
+        );
       }
     });
   }

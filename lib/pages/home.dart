@@ -67,10 +67,6 @@ class _HomeState extends State<Home> {
                       ScaffoldMessenger.of(
                         context,
                       ).showSnackBar(SnackBar(content: Text(state.message)));
-                    } else if (state is CategoryFailure) {
-                      ScaffoldMessenger.of(
-                        context,
-                      ).showSnackBar(SnackBar(content: Text(state.message)));
                     }
                   },
                 ),

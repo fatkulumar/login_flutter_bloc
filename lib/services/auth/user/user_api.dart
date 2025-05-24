@@ -8,7 +8,8 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 class UserApi {
   final String _baseUrl;
 
-  UserApi() : _baseUrl = dotenv.get('API_URL', fallback: 'http://localhost:8000');
+  UserApi()
+    : _baseUrl = dotenv.get('API_URL', fallback: 'http://localhost:8000');
 
   Uri _buildUrl(String path) {
     return Uri.parse('$_baseUrl$path');
@@ -23,18 +24,24 @@ class UserApi {
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
-          'Authorization': 'Bearer $token'
+          'Authorization': 'Bearer $token',
         },
       );
 
+      final jsonData = json.decode(response.body);
       if (response.statusCode == 200) {
-        final jsonData = json.decode(response.body);
         return ResponseModel<UserModel>.fromJsonForSingle(
           jsonData,
           (json) => UserModel.fromJson(json),
         );
       } else {
-        throw Exception('Failed to get data from api: ${response.body}');
+        return ResponseModel<UserModel>(
+          success: jsonData['success'] ?? false,
+          code: jsonData['code'] ?? response.statusCode,
+          message: jsonData['message'] ?? 'Terjadi kesalahan',
+          singleData: null,
+          errors: null,
+        );
       }
     } catch (e) {
       throw Exception('Error: $e');

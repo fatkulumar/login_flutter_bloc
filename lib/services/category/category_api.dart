@@ -28,14 +28,20 @@ class CategoryApi {
         },
       );
 
+      final jsonData = json.decode(response.body);
       if (response.statusCode == 200) {
-        final jsonData = json.decode(response.body);
         return ResponseModel<CategoryModel>.fromJsonForDataModel(
           jsonData,
           (json) => CategoryModel.fromJson(json),
         );
       } else {
-        throw Exception('Failed to login data: ${response.body}');
+        return ResponseModel<CategoryModel>(
+          success: jsonData['success'] ?? false,
+          code: jsonData['code'] ?? response.statusCode,
+          message: jsonData['message'] ?? 'Terjadi kesalahan',
+          singleData: null,
+          errors: null,
+        );
       }
     } catch (e) {
       throw Exception('Error: $e');
