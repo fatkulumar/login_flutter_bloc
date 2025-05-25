@@ -11,193 +11,179 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
   CategoryBloc(this.categoryRepository) : super(CategoryInitial()) {
     on<LoadCategory>((event, emit) async {
       emit(CategoryLoading());
+
       try {
         final response = await categoryRepository.getCategory();
         final categories =
             response.data?.data ??
             (response.singleData != null ? [response.singleData!] : []);
-        if (response.code == 200) {
-          emit(
-            CategoryLoaded(
-              code: response.code,
-              message: response.message,
-              success: response.success,
-              data: categories,
-            ),
-          );
-        } else {
-          emit(
-            CategoryFailure(
-              'Gagal mengambil data:\n${response.message} (code: ${response.code})',
-            ),
-          );
-        }
+
+        final isSuccess = response.code == 200;
+        final nextState =
+            isSuccess
+                ? CategoryLoaded(
+                  code: response.code,
+                  message: response.message,
+                  success: response.success,
+                  data: categories,
+                )
+                : CategoryFailure(
+                  'Gagal mengambil data:\n${response.message} (code: ${response.code})',
+                );
+
+        emit(nextState);
       } catch (e) {
         emit(CategoryFailure('Terjadi Kesalahan Ketika Mengambil Data: $e'));
       }
     });
 
     on<AddCategory>((event, emit) async {
+      final currentState =
+          state is CategoryLoaded ? state as CategoryLoaded : null;
+
       try {
         final response = await categoryRepository.addCategory(event.name);
+
         if (response.singleData != null) {
           final newItem = response.singleData!;
-          if (state is CategoryLoaded) {
-            final currentState = state as CategoryLoaded;
 
-            // Salin data lama, hapus jika sudah ada (hindari duplikat), lalu tambahkan di akhir
-            final updatedCategory =
-                List<CategoryModel>.from(currentState.data)
-                  ..removeWhere((item) => item.id == newItem.id)
-                  ..add(newItem);
+          final updatedCategory =
+              currentState != null
+                  ? [
+                    ...currentState.data.where((item) => item.id != newItem.id),
+                    newItem,
+                  ]
+                  : [newItem];
 
-            emit(
-              CategoryLoaded(
-                code: response.code,
-                message: response.message,
-                success: response.success,
-                data: updatedCategory,
-              ),
-            );
-          } else {
-            // Kalau state sebelumnya bukan CategoryLoaded, kita anggap baru dan emit list 1 user
-            emit(
-              CategoryLoaded(
-                code: response.code,
-                message: response.message,
-                success: response.success,
-                data: [response.singleData!],
-              ),
-            );
-          }
-        } else {
-          final errors =
-              response.errors?.values
-                  .expand((messages) => messages)
-                  .join('\n') ??
-              'Terjadi kesalahan';
-          emit(CategoryFailure('Gagal menambahkan data:\n$errors'));
-          final currentState = state as CategoryLoaded;
           emit(
-            CategoryLoaded(
-              code: currentState.code,
-              message: "Reload Data Category",
-              success: currentState.success,
-              data: currentState.data,
+            CategoryUpdated(
+              code: response.code,
+              message: response.message,
+              success: response.success,
+              data: updatedCategory,
             ),
           );
+
+          emit(
+            CategoryLoaded(
+              code: response.code,
+              message: response.message,
+              success: response.success,
+              data: updatedCategory,
+            ),
+          );
+        } else {
+          final errors =
+              response.errors?.values.expand((msgs) => msgs).join('\n') ??
+              'Terjadi kesalahan';
+          emit(CategoryFailure(errors));
+          if (currentState != null) {
+            emit(currentState);
+          }
         }
       } catch (e) {
         emit(CategoryFailure('Terjadi Kesalahan Ketika Menambahkan Data: $e'));
-        final currentState = state as CategoryLoaded;
-        emit(
-          CategoryLoaded(
-            code: currentState.code,
-            message: "Reload Data Category",
-            success: currentState.success,
-            data: currentState.data,
-          ),
-        );
+        if (currentState != null) {
+          emit(currentState);
+        }
       }
     });
 
     on<UpdateCategory>((event, emit) async {
+      final currentState =
+          state is CategoryLoaded ? state as CategoryLoaded : null;
+
       try {
         final response = await categoryRepository.updateCategory(
           event.id,
           event.name,
         );
+
         if (response.singleData == null) {
-          final errors =
-              response.errors?.values
-                  .expand((messages) => messages)
-                  .join('\n') ??
-              'Terjadi kesalahan';
-          emit(CategoryFailure('Gagal update data:\n$errors'));
-          final currentState = state as CategoryLoaded;
-          emit(
-            CategoryLoaded(
-              code: currentState.code,
-              message: "Reload Data Category",
-              success: currentState.success,
-              data: currentState.data,
-            ),
-          );
+          final errorText = (response.errors ?? {}).values
+              .expand((e) => e)
+              .join('\n');
+          emit(CategoryFailure(errorText));
+          if (currentState != null) emit(currentState);
           return;
         }
 
         final updatedCategory = response.singleData!;
+        final updatedCategories =
+            currentState != null
+                ? currentState.data
+                    .map(
+                      (category) =>
+                          category.id == updatedCategory.id
+                              ? updatedCategory
+                              : category,
+                    )
+                    .toList()
+                : [updatedCategory];
 
-        if (state is CategoryLoaded) {
-          final currentState = state as CategoryLoaded;
-
-          final updatedCategories =
-              currentState.data.map((category) {
-                return category.id == updatedCategory.id
-                    ? updatedCategory
-                    : category;
-              }).toList();
-
-          emit(
-            CategoryLoaded(
-              code: response.code,
-              message: response.message,
-              success: response.success,
-              data: updatedCategories,
-            ),
-          );
-        } else {
-          // fallback: jika sebelumnya bukan CategoryLoaded
-          emit(
-            CategoryLoaded(
-              code: response.code,
-              message: response.message,
-              success: response.success,
-              data: [updatedCategory],
-            ),
-          );
-        }
-      } catch (e) {
-        emit(CategoryFailure('Terjadi Kesalahan Ketika Update Data: $e'));
-        final currentState = state as CategoryLoaded;
         emit(
-          CategoryLoaded(
-            code: currentState.code,
-            message: "Reload Data Category",
-            success: currentState.success,
-            data: currentState.data,
+          CategoryUpdated(
+            code: response.code,
+            message: response.message,
+            success: response.success,
+            data: updatedCategories,
           ),
         );
+
+        emit(
+          CategoryLoaded(
+            code: response.code,
+            message: response.message,
+            success: response.success,
+            data: updatedCategories,
+          ),
+        );
+      } catch (e) {
+        emit(CategoryFailure('Terjadi Kesalahan: $e'));
+        if (currentState != null) emit(currentState);
       }
     });
 
     on<DeleteCategory>((event, emit) async {
+      final currentState =
+          state is CategoryLoaded ? state as CategoryLoaded : null;
+
       try {
         final response = await categoryRepository.deleteCategory(event.id);
 
         if (response.success && response.code == 200) {
-          if (state is CategoryLoaded) {
-            final currentState = state as CategoryLoaded;
-
-            final updatedCategory =
+          if (currentState != null) {
+            final updatedCategories =
                 currentState.data
                     .where((category) => category.id != event.id)
                     .toList();
 
             emit(CategoryDeleted(response.message));
-            // Emit hanya 1 state yang sudah diupdate
             emit(
               CategoryLoaded(
                 code: response.code,
                 message: response.message,
                 success: true,
-                data: updatedCategory,
+                data: updatedCategories,
               ),
             );
           }
         } else {
           emit(CategoryFailure(response.message));
-          final currentState = state as CategoryLoaded;
+          if (currentState != null) {
+            emit(
+              CategoryLoaded(
+                code: currentState.code,
+                message: "Reload Data Category",
+                success: currentState.success,
+                data: currentState.data,
+              ),
+            );
+          }
+        }
+      } catch (e) {
+        emit(CategoryFailure('Terjadi kesalahan saat menghapus data: $e'));
+        if (currentState != null) {
           emit(
             CategoryLoaded(
               code: currentState.code,
@@ -207,17 +193,6 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
             ),
           );
         }
-      } catch (e) {
-        emit(CategoryFailure('Terjadi kesalahan saat menghapus data: $e'));
-        final currentState = state as CategoryLoaded;
-        emit(
-          CategoryLoaded(
-            code: currentState.code,
-            message: "Reload Data Category",
-            success: currentState.success,
-            data: currentState.data,
-          ),
-        );
       }
     });
   }

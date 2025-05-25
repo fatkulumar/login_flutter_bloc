@@ -8,6 +8,7 @@ class CustomTextField extends StatelessWidget {
   final TextEditingController? controller;
   final Widget? suffixIcon;
   final String? Function(String?)? validator;
+  final String? errorText;
 
   const CustomTextField({
     super.key,
@@ -17,7 +18,8 @@ class CustomTextField extends StatelessWidget {
     this.obscure = false,
     this.controller,
     this.suffixIcon,
-     this.validator,
+    this.validator,
+    this.errorText, // tambahkan errorText
   });
 
   @override
@@ -31,6 +33,8 @@ class CustomTextField extends StatelessWidget {
         hintText: hint,
         labelText: label,
         suffixIcon: suffixIcon,
+        errorText: errorText, // tampilkan error
+        prefixIcon: Icon(icon),
       ),
     );
   }

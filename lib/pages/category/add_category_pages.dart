@@ -4,7 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_application_2/blocs/category/bloc/category_bloc.dart';
 
 class AddCategoryPages extends StatefulWidget {
-   final CategoryModel? category; 
+  final CategoryModel? category;
   const AddCategoryPages({super.key, this.category});
 
   @override
@@ -14,7 +14,7 @@ class AddCategoryPages extends StatefulWidget {
 class _AddCategoryPagesState extends State<AddCategoryPages> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _nameController = TextEditingController();
-
+  String? _categoryError;
   @override
   void initState() {
     super.initState();
@@ -26,7 +26,11 @@ class _AddCategoryPagesState extends State<AddCategoryPages> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Tambah Category')),
+      appBar: AppBar(
+        title: Text(
+          widget.category == null ? 'Tambah Category' : 'Update Category',
+        ),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -38,6 +42,7 @@ class _AddCategoryPagesState extends State<AddCategoryPages> {
                 decoration: InputDecoration(
                   labelText: 'Nama',
                   border: OutlineInputBorder(),
+                  errorText: _categoryError,
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -45,12 +50,19 @@ class _AddCategoryPagesState extends State<AddCategoryPages> {
                   }
                   return null;
                 },
+                onChanged: (value) {
+                  if (_categoryError != null) {
+                    setState(() {
+                      _categoryError = null;
+                    });
+                  }
+                },
               ),
               SizedBox(height: 16),
 
               BlocListener<CategoryBloc, CategoryState>(
                 listener: (context, state) {
-                  if (state is CategoryLoaded) {
+                  if (state is CategoryUpdated) {
                     final message = state.message;
                     ScaffoldMessenger.of(
                       context,
@@ -60,6 +72,10 @@ class _AddCategoryPagesState extends State<AddCategoryPages> {
                     ScaffoldMessenger.of(
                       context,
                     ).showSnackBar(SnackBar(content: Text(state.message)));
+                    setState(() {
+                      _categoryError =
+                          state.message; // ambil pesan error dari BLoC
+                    });
                   }
                 },
                 child: ElevatedButton(
@@ -74,15 +90,16 @@ class _AddCategoryPagesState extends State<AddCategoryPages> {
                       } else {
                         // mode edit
                         context.read<CategoryBloc>().add(
-                          UpdateCategory(
-                            id: widget.category!.id,
-                            name: name,
-                          ),
+                          UpdateCategory(id: widget.category!.id, name: name),
                         );
                       }
                     }
                   },
-                  child: Text(widget.category == null ? 'Tambah Category' : 'Update Category'),
+                  child: Text(
+                    widget.category == null
+                        ? 'Tambah Category'
+                        : 'Update Category',
+                  ),
                 ),
               ),
             ],

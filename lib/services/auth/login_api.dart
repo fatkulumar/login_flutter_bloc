@@ -7,7 +7,8 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 class LoginApi {
   final String _baseUrl;
 
-  LoginApi() : _baseUrl = dotenv.get('API_URL', fallback: 'http://localhost:8000');
+  LoginApi()
+    : _baseUrl = dotenv.get('API_URL', fallback: 'http://localhost:8000');
 
   Uri _buildUrl(String path) {
     return Uri.parse('$_baseUrl$path');
@@ -22,23 +23,36 @@ class LoginApi {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
-        body: json.encode({
-          'email': email,
-          'password': password,
-        }),
+        body: json.encode({'email': email, 'password': password}),
       );
 
+      final jsonData = json.decode(response.body);
       if (response.statusCode == 200) {
-        final jsonData = json.decode(response.body);
         return ResponseModel<TokenModel>.fromJsonForSingle(
           jsonData,
           (json) => TokenModel.fromJson(json),
         );
       } else {
-        throw Exception('Failed to login user: ${response.body}');
+        return ResponseModel<TokenModel>(
+          success: jsonData['status'] ?? false,
+          code: jsonData['code'] ?? response.statusCode,
+          message: jsonData['message'] ?? 'Terjadi kesalahan',
+          singleData: null,
+          errors:
+              jsonData['data'] is Map<String, dynamic>
+                  ? (jsonData['data'] as Map<String, dynamic>).map(
+                    (key, value) => MapEntry(key, List<String>.from(value)),
+                  )
+                  : null,
+        );
       }
     } catch (e) {
-      throw Exception('Error: $e');
+      return ResponseModel<TokenModel>(
+        success: false,
+        code: 500,
+        message: 'Kesalahan koneksi atau data tidak valid.',
+        singleData: null,
+      );
     }
   }
 }

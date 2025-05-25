@@ -23,3 +23,10 @@ final class LoginFailure extends LoginState {
   final String message;
   LoginFailure(this.message);
 }
+
+class LoginFailureWithFields extends LoginState {
+  final String? emailError;
+  final String? passwordError;
+
+  LoginFailureWithFields({this.emailError, this.passwordError});
+}

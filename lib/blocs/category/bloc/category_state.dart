@@ -28,3 +28,17 @@ final class CategoryDeleted extends CategoryState {
   final String message;
   CategoryDeleted(this.message);
 }
+
+final class CategoryUpdated extends CategoryState {
+  final bool success;
+  final int code;
+  final String message;
+  final List<CategoryModel> data;
+
+  CategoryUpdated({
+    required this.success,
+    required this.code,
+    required this.message,
+    required this.data
+  });
+}

@@ -16,6 +16,8 @@ import 'package:flutter_application_2/blocs/category/bloc/category_bloc.dart';
 // Variabel Global
 String cachedEmail = '';
 String cachedPassword = '';
+String? cachedEmailError;
+String? cachedPasswordError;
 
 void showLoginFormSheet(BuildContext context) {
   final LoginApi api = LoginApi();
@@ -25,17 +27,18 @@ void showLoginFormSheet(BuildContext context) {
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
     context: context,
-    builder: (context) => BlocProvider(
-      create: (_) => LoginBloc(loginRepository),
-      child: _LoginFormSheet(
-        initialEmail: cachedEmail,
-        initialPassword: cachedPassword,
-        onValueChanged: (email, password) {
-          cachedEmail = email;
-          cachedPassword = password;
-        },
-      ),
-    ),
+    builder:
+        (context) => BlocProvider(
+          create: (_) => LoginBloc(loginRepository),
+          child: _LoginFormSheet(
+            initialEmail: cachedEmail,
+            initialPassword: cachedPassword,
+            onValueChanged: (email, password) {
+              cachedEmail = email;
+              cachedPassword = password;
+            },
+          ),
+        ),
   );
 }
 
@@ -67,6 +70,14 @@ class _LoginFormSheetState extends State<_LoginFormSheet> {
     super.initState();
     emailController = TextEditingController(text: widget.initialEmail);
     passwordController = TextEditingController(text: widget.initialPassword);
+
+    emailController.addListener(() {
+      if (_emailError != null && emailController.text.isNotEmpty) {
+        setState(() {
+          _emailError = null;
+        });
+      }
+    });
   }
 
   @override
@@ -87,9 +98,9 @@ class _LoginFormSheetState extends State<_LoginFormSheet> {
         ),
       );
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Form belum valid')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Form belum valid')));
     }
   }
 
@@ -99,6 +110,9 @@ class _LoginFormSheetState extends State<_LoginFormSheet> {
     });
   }
 
+  String? _emailError;
+  String? _passwordError;
+
   @override
   Widget build(BuildContext context) {
     return BlocListener<LoginBloc, LoginState>(
@@ -107,13 +121,17 @@ class _LoginFormSheetState extends State<_LoginFormSheet> {
           showDialog(
             context: context,
             barrierDismissible: false,
-            builder: (context) => const Center(child: CircularProgressIndicator()),
+            builder:
+                (context) => const Center(child: CircularProgressIndicator()),
           );
         } else if (state is LoginSuccess) {
           // Reset data global setelah login berhasil
           setState(() {
             cachedEmail = ''; // Reset email yang tersimpan
             cachedPassword = ''; // Reset password yang tersimpan
+
+            cachedEmailError = null;
+            cachedPasswordError = null;
 
             emailController.clear();
             passwordController.clear();
@@ -123,23 +141,40 @@ class _LoginFormSheetState extends State<_LoginFormSheet> {
           Navigator.pop(context); // tutup loading dialog
           Navigator.pop(context); // tutup bottom sheet
 
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.message)),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(state.message)));
           Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => BlocProvider(
-              create: (_) => CategoryBloc(CategoryRepository(api: CategoryApi()))..add(LoadCategory()), // inisialisasi bloc
-              child: const Home(),
+            context,
+            MaterialPageRoute(
+              builder:
+                  (context) => BlocProvider(
+                    create:
+                        (_) =>
+                            CategoryBloc(CategoryRepository(api: CategoryApi()))
+                              ..add(LoadCategory()), // inisialisasi bloc
+                    child: const Home(),
+                  ),
             ),
-          ),
-        );
+          );
         } else if (state is LoginFailure) {
           Navigator.pop(context); // tutup loading
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.message)),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(state.message)));
+        } else if (state is LoginFailureWithFields) {
+          setState(() {
+            // Reset semua error dulu
+            _emailError = null;
+            _passwordError = null;
+            // Cek apakah pesan mengandung error field
+            _emailError = state.emailError;
+            _passwordError = state.passwordError;
+
+            cachedEmailError = _emailError != null ? state.emailError : null;
+            cachedPasswordError =
+                _passwordError != null ? state.passwordError : null;
+          });
         }
       },
       child: SingleChildScrollView(
@@ -151,7 +186,9 @@ class _LoginFormSheetState extends State<_LoginFormSheet> {
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               color: secondaryColor,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(40)),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(40),
+              ),
             ),
             child: Form(
               key: _formKey,
@@ -163,10 +200,12 @@ class _LoginFormSheetState extends State<_LoginFormSheet> {
                   const SizedBox(height: 20),
                   CustomTextField(
                     controller: emailController,
+                    icon: Icons.email_outlined,
                     label: "Username/Email",
                     hint: "example@email.com",
-                    icon: Icons.email_outlined,
+                    errorText: cachedEmailError,
                     validator: (value) {
+                      if (_emailError != null) return _emailError;
                       if (value == null || value.isEmpty) {
                         return 'Email tidak boleh kosong';
                       }
@@ -183,6 +222,7 @@ class _LoginFormSheetState extends State<_LoginFormSheet> {
                     label: "Password",
                     hint: "password",
                     icon: Icons.lock_outline,
+                    errorText: cachedPasswordError,
                     suffixIcon: IconButton(
                       onPressed: _togglePasswordView,
                       icon: Icon(
