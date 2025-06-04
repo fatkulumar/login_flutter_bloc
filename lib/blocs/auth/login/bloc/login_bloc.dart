@@ -16,12 +16,9 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
           event.email,
           event.password,
         );
-        print('ini dari login bloc $response');
         if (response.code == 200 && response.success) {
           final token = response.singleData?.token ?? '';
           await TokenStorageUtil.saveToken(token);
-          var tokenss = TokenStorageUtil.getToken();
-          print('ini adalah token $token');
           emit(
             LoginSuccess(
               code: response.code,

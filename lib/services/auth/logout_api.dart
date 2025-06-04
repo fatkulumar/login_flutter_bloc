@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter_application_2/models/response_model.dart';
 import 'package:flutter_application_2/models/token_model.dart';
+import 'package:flutter_application_2/utils/token_storage_util.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
@@ -16,18 +17,16 @@ class LogoutApi {
   
   Future<ResponseModel<TokenModel>> logout(token) async {
     final url = _buildUrl('/api/logout');
-    print('masuk api 1');
+    final token = await TokenStorageUtil.getToken();
     try {
       final response = await http.post(
         url,
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
+          'Authorization': 'Bearer $token',
         },
-        body: json.encode({'_token': token}),
       );
-print('masuk api 2');
-print(token);
       final jsonData = json.decode(response.body);
       if (response.statusCode == 200) {
         return ResponseModel<TokenModel>.fromJsonForSingle(

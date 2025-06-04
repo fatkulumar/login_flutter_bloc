@@ -15,15 +15,20 @@ class AuthChecker extends StatefulWidget {
 class _AuthCheckerState extends State<AuthChecker> {
   bool _isChecking = true;
   bool _isAuthenticated = false;
+  bool _hasChecked = false;
 
   @override
-  void initState() {
-    super.initState();
-    _checkAuth();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    if (!_hasChecked) {
+      _hasChecked = true;
+      _checkAuth();
+    }
   }
 
   void _checkAuth() async {
-    final token = await TokenStorageUtil.getToken(); // Ambil ulang di sini
+    final token = await TokenStorageUtil.getToken();
 
     if (token == null || token.isEmpty) {
       _navigateToWelcome();
@@ -36,10 +41,12 @@ class _AuthCheckerState extends State<AuthChecker> {
 
       final subscription = userBloc.stream.listen((state) {
         if (state is UserLoaded) {
-          setState(() {
-            _isAuthenticated = true;
-            _isChecking = false;
-          });
+          if (mounted) {
+            setState(() {
+              _isAuthenticated = true;
+              _isChecking = false;
+            });
+          }
         } else if (state is UserFailure) {
           _navigateToWelcome();
         }
@@ -53,18 +60,18 @@ class _AuthCheckerState extends State<AuthChecker> {
   }
 
   void _navigateToWelcome() {
-    setState(() {
-      _isAuthenticated = false;
-      _isChecking = false;
-    });
+    if (mounted) {
+      setState(() {
+        _isAuthenticated = false;
+        _isChecking = false;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     if (_isChecking) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     return _isAuthenticated ? const Home() : const WelcomePages();

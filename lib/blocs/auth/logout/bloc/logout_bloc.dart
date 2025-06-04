@@ -10,18 +10,14 @@ class LogoutBloc extends Bloc<LogoutEvent, LogoutState> {
   final LogoutRepository logoutRepository;
   LogoutBloc(this.logoutRepository) : super(LogoutInitial()) {
     on<LogoutSubmited>((event, emit) async {
-      emit(LogoutLoaded());
+      emit(LogoutLoading()); // Perbaikan di sini
       try {
-        print('masuk bloc 1');
         final token = await TokenStorageUtil.getToken();
-        print('masuk bloc 2');
         final response = await logoutRepository.logout(token);
-        print('masuk bloc 2');
 
         if (response.code == 200 && response.success) {
           final tokenFromDevice = response.singleData?.token ?? "";
 
-          // Hapus token langsung, tanpa argumen
           await TokenStorageUtil.deleteToken();
 
           emit(

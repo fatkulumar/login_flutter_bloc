@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'package:flutter_application_2/models/category/category_model.dart';
 import 'package:flutter_application_2/models/response_model.dart';
-import 'package:flutter_application_2/utils/token_storage_util.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_application_2/utils/token_storage_util.dart';
 
 class CategoryApi {
   final String _baseUrl;

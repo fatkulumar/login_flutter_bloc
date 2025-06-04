@@ -19,7 +19,6 @@ class _HomeState extends State<Home> {
     super.initState();
     context.read<CategoryBloc>().add(LoadCategory());
     context.read<UserBloc>().add(LoadUser());
-    context.read<LogoutBloc>().add((LogoutSubmited()));
   }
 
   @override
@@ -38,69 +37,109 @@ class _HomeState extends State<Home> {
               icon: Icon(Icons.refresh),
             ),
           ),
-           Padding(
+          Padding(
             padding: const EdgeInsets.only(right: 24),
             child: IconButton(
               onPressed: () {
-                context.read<LogoutBloc>().add(LogoutSubmited());
+                showDialog(
+                  context: context,
+                  builder:
+                      (context) => AlertDialog(
+                        title: Text('Konfirmasi Logout'),
+                        content: Text('Apakah kamu yakin ingin keluar?'),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: Text('Batal'),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              Navigator.pop(context); // tutup dialog
+                              context.read<LogoutBloc>().add(LogoutSubmited());
+                            },
+                            child: Text('Logout'),
+                          ),
+                        ],
+                      ),
+                );
               },
-              icon: Icon(Icons.person),
+              icon: Icon(Icons.logout),
             ),
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            // User info section
-            BlocBuilder<UserBloc, UserState>(
-              builder: (context, state) {
-                if (state is UserLoaded) {
-                  final user = state.data;
-                  return ListTile(
-                    leading: Icon(Icons.person),
-                    title: Text(user.email),
-                    subtitle: Text(user.name),
-                  );
-                } else if (state is UserFailure) {
-                  return Center(child: Text(state.message));
-                }
-                return const SizedBox();
-              },
-            ),
+      body: MultiBlocListener(
+        listeners: [
+          BlocListener<CategoryBloc, CategoryState>(
+            listener: (context, state) {
+              if (state is CategoryDeleted) {
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(SnackBar(content: Text(state.message)));
+              }
+            },
+          ),
+          BlocListener<UserBloc, UserState>(
+            listener: (context, state) {
+              if (state is UserFailure) {
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(SnackBar(content: Text(state.message)));
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (_) => WelcomePages()),
+                );
+              }
+            },
+          ),
+          BlocListener<LogoutBloc, LogoutState>(
+            listener: (context, state) {
+              if (state is LogoutLoading) {
+                showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (_) => Center(child: CircularProgressIndicator()),
+                );
+              } else {
+                Navigator.of(
+                  context,
+                  rootNavigator: true,
+                ).pop(); // tutup loading
+              }
 
-            // Category list section
-            MultiBlocListener(
-              listeners: [
-                BlocListener<CategoryBloc, CategoryState>(
-                  listener: (context, state) {
-                    if (state is CategoryDeleted) {
-                      ScaffoldMessenger.of(
-                        context,
-                      ).showSnackBar(SnackBar(content: Text(state.message)));
-                    }
-                  },
-                ),
-                BlocListener<UserBloc, UserState>(
-                  listener: (context, state) {
-                    if (state is UserFailure) {
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.message)));
-
-                      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => WelcomePages()));
-                    }
-                  },
-                ),
-                BlocListener<LogoutBloc, LogoutState>(
-                  listener: (context, state) {
-                    if (state is LogoutFailure) {
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.message)));
-
-                      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => WelcomePages()));
-                    }
-                  },
-                ),
-              ],
-              child: BlocBuilder<CategoryBloc, CategoryState>(
+              if (state is LogoutFailure) {
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(SnackBar(content: Text(state.message)));
+              } else if (state is LogoutSuccess) {
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (_) => WelcomePages()),
+                  (route) => false,
+                );
+              }
+            },
+          ),
+        ],
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              BlocBuilder<UserBloc, UserState>(
+                builder: (context, state) {
+                  if (state is UserLoaded) {
+                    final user = state.data;
+                    return ListTile(
+                      leading: Icon(Icons.person),
+                      title: Text(user.email),
+                      subtitle: Text(user.name),
+                    );
+                  } else if (state is UserFailure) {
+                    return Center(child: Text(state.message));
+                  }
+                  return const SizedBox();
+                },
+              ),
+              BlocBuilder<CategoryBloc, CategoryState>(
                 builder: (context, state) {
                   if (state is CategoryLoading) {
                     return const Center(child: CircularProgressIndicator());
@@ -174,8 +213,8 @@ class _HomeState extends State<Home> {
                   return const SizedBox();
                 },
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
       floatingActionButton: FloatingActionButton(
