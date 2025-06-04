@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:flutter_application_2/models/response_model.dart';
 import 'package:flutter_application_2/models/user/user_model.dart';
-import 'package:flutter_application_2/utils/token_storage.dart';
+import 'package:flutter_application_2/utils/token_storage_util.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
@@ -18,7 +18,7 @@ class UserApi {
   Future<ResponseModel<UserModel>> getUser() async {
     final url = _buildUrl('/api/user');
     try {
-      final token = await TokenStorage.getToken();
+      final token = await TokenStorageUtil.getToken();
       final response = await http.get(
         url,
         headers: {

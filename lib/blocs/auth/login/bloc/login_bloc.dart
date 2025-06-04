@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_2/repositories/auth/login_repository.dart';
+import 'package:flutter_application_2/utils/token_storage_util.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_application_2/utils/token_storage.dart';
 
 part 'login_event.dart';
 part 'login_state.dart';
@@ -16,10 +16,12 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
           event.email,
           event.password,
         );
-
+        print('ini dari login bloc $response');
         if (response.code == 200 && response.success) {
           final token = response.singleData?.token ?? '';
-          await TokenStorage.saveToken(token);
+          await TokenStorageUtil.saveToken(token);
+          var tokenss = TokenStorageUtil.getToken();
+          print('ini adalah token $token');
           emit(
             LoginSuccess(
               code: response.code,

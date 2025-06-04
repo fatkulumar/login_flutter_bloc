@@ -7,7 +7,7 @@ class LoginRepository {
 
   LoginRepository({required this.api});
 
-   Future<ResponseModel<TokenModel>> login(String email, String password) {
+  Future<ResponseModel<TokenModel>> login(String email, String password) {
     return api.login(email, password);
   }
 }

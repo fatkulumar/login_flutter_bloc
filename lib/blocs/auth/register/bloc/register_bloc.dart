@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_2/repositories/auth/register_repository.dart';
-import 'package:flutter_application_2/utils/token_storage.dart';
+import 'package:flutter_application_2/utils/token_storage_util.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 part 'register_event.dart';
@@ -15,7 +15,7 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
         final response = await registerRepository.register(event.email, event.name, event.password, event.passwordConfimation);
         if (response.code == 200) {
           var token = response.singleData?.token ?? '';
-          await TokenStorage.saveToken(token);
+          await TokenStorageUtil.saveToken(token);
           emit(
             RegisterSuccess(
               code: response.code,

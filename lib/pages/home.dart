@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_2/blocs/auth/logout/bloc/logout_bloc.dart';
 import 'package:flutter_application_2/blocs/category/bloc/category_bloc.dart';
 import 'package:flutter_application_2/blocs/user/bloc/user_bloc.dart';
 import 'package:flutter_application_2/pages/category/add_category_pages.dart';
@@ -18,13 +19,14 @@ class _HomeState extends State<Home> {
     super.initState();
     context.read<CategoryBloc>().add(LoadCategory());
     context.read<UserBloc>().add(LoadUser());
+    context.read<LogoutBloc>().add((LogoutSubmited()));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('My Home'),
+        title: Text('My Homes'),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 24),
@@ -34,6 +36,15 @@ class _HomeState extends State<Home> {
                 context.read<UserBloc>().add(LoadUser());
               },
               icon: Icon(Icons.refresh),
+            ),
+          ),
+           Padding(
+            padding: const EdgeInsets.only(right: 24),
+            child: IconButton(
+              onPressed: () {
+                context.read<LogoutBloc>().add(LogoutSubmited());
+              },
+              icon: Icon(Icons.person),
             ),
           ),
         ],
@@ -73,6 +84,15 @@ class _HomeState extends State<Home> {
                 BlocListener<UserBloc, UserState>(
                   listener: (context, state) {
                     if (state is UserFailure) {
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.message)));
+
+                      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => WelcomePages()));
+                    }
+                  },
+                ),
+                BlocListener<LogoutBloc, LogoutState>(
+                  listener: (context, state) {
+                    if (state is LogoutFailure) {
                       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.message)));
 
                       Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => WelcomePages()));

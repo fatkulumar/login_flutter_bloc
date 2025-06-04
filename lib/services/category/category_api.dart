@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'package:flutter_application_2/models/category/category_model.dart';
 import 'package:flutter_application_2/models/response_model.dart';
+import 'package:flutter_application_2/utils/token_storage_util.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:flutter_application_2/utils/token_storage.dart';
 
 class CategoryApi {
   final String _baseUrl;
@@ -18,7 +18,7 @@ class CategoryApi {
   Future<ResponseModel<CategoryModel>> getCategory() async {
     final url = _buildUrl('/api/category');
     try {
-      final token = await TokenStorage.getToken();
+      final token = await TokenStorageUtil.getToken();
       final response = await http.get(
         url,
         headers: {
@@ -51,7 +51,7 @@ class CategoryApi {
   Future<ResponseModel<CategoryModel>> addCategory(String name) async {
     final url = _buildUrl('/api/category');
     try {
-      final token = await TokenStorage.getToken();
+      final token = await TokenStorageUtil.getToken();
       final response = await http.post(
         url,
         headers: {
@@ -93,7 +93,7 @@ class CategoryApi {
   ) async {
     final url = _buildUrl('/api/category/$id');
     try {
-      final token = await TokenStorage.getToken();
+      final token = await TokenStorageUtil.getToken();
       final response = await http.patch(
         url,
         headers: {
@@ -129,7 +129,7 @@ class CategoryApi {
   }
 
   Future<ResponseModel<CategoryModel>> deleteCategory(String id) async {
-    final token = await TokenStorage.getToken();
+    final token = await TokenStorageUtil.getToken();
     final url = _buildUrl('/api/category/$id');
     try {
       final response = await http.delete(

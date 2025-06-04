@@ -3,7 +3,7 @@ import 'package:flutter_application_2/pages/home.dart';
 import 'package:flutter_application_2/pages/welcome_pages.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_application_2/blocs/user/bloc/user_bloc.dart';
-import 'package:flutter_application_2/utils/token_storage.dart';
+import 'package:flutter_application_2/utils/token_storage_util.dart';
 
 class AuthChecker extends StatefulWidget {
   const AuthChecker({super.key});
@@ -23,7 +23,7 @@ class _AuthCheckerState extends State<AuthChecker> {
   }
 
   void _checkAuth() async {
-    final token = await TokenStorage.getToken(); // Ambil ulang di sini
+    final token = await TokenStorageUtil.getToken(); // Ambil ulang di sini
 
     if (token == null || token.isEmpty) {
       _navigateToWelcome();

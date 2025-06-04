@@ -16,7 +16,7 @@ import 'package:flutter_application_2/blocs/category/bloc/category_bloc.dart';
 // Variabel Global
 String cachedEmail = '';
 String cachedPassword = '';
-String? cachedEmailError;
+String? cachedEmailError; 
 String? cachedPasswordError;
 
 void showLoginFormSheet(BuildContext context) {
@@ -68,8 +68,8 @@ class _LoginFormSheetState extends State<_LoginFormSheet> {
   @override
   void initState() {
     super.initState();
-    emailController = TextEditingController(text: widget.initialEmail);
-    passwordController = TextEditingController(text: widget.initialPassword);
+    emailController = TextEditingController(text: "test@gmail.com");
+    passwordController = TextEditingController(text: "test");
 
     emailController.addListener(() {
       if (_emailError != null && emailController.text.isNotEmpty) {
@@ -196,7 +196,7 @@ class _LoginFormSheetState extends State<_LoginFormSheet> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const HeaderText(title: "Welcome Back", subtitle: "Login"),
+                  const HeaderText(title: "Welcome Backs", subtitle: "Login"),
                   const SizedBox(height: 20),
                   CustomTextField(
                     controller: emailController,

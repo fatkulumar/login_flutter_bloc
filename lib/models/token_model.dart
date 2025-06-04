@@ -9,4 +9,7 @@ class TokenModel {
       token: json.toString(), // json di sini adalah String
     );
   }
+
+  @override
+  String toString() => 'TokenModel(token: $token)';
 }
