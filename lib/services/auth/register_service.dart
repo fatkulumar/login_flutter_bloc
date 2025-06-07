@@ -4,10 +4,10 @@ import 'package:flutter_application_2/models/token_model.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-class RegisterApi {
+class RegisterService {
   final String _baseUrl;
 
-  RegisterApi() : _baseUrl = dotenv.get('API_URL', fallback: 'http://localhost:8000');
+  RegisterService() : _baseUrl = dotenv.get('API_URL', fallback: 'http://localhost:8000');
 
   Uri _buildUrl(String path) {
     return Uri.parse('$_baseUrl$path');

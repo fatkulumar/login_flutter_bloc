@@ -1,9 +1,9 @@
 import 'package:flutter_application_2/models/response_model.dart';
 import 'package:flutter_application_2/models/token_model.dart';
-import 'package:flutter_application_2/services/auth/register_api.dart';
+import 'package:flutter_application_2/services/auth/register_service.dart';
 
 class RegisterRepository {
-  final RegisterApi api;
+  final RegisterService api;
 
   RegisterRepository({required this.api});
 

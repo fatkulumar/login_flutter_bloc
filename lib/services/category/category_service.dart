@@ -5,10 +5,10 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_application_2/utils/token_storage_util.dart';
 
-class CategoryApi {
+class CategoryService {
   final String _baseUrl;
 
-  CategoryApi()
+  CategoryService()
     : _baseUrl = dotenv.get('API_URL', fallback: 'http://localhost:8000');
 
   Uri _buildUrl(String path) {

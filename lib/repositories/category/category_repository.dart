@@ -1,9 +1,9 @@
 import 'package:flutter_application_2/models/category/category_model.dart';
 import 'package:flutter_application_2/models/response_model.dart';
-import 'package:flutter_application_2/services/category/category_api.dart';
+import 'package:flutter_application_2/services/category/category_service.dart';
 
 class CategoryRepository {
-  final CategoryApi api;
+  final CategoryService api;
 
   CategoryRepository({required this.api});
 

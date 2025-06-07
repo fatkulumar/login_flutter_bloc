@@ -6,8 +6,8 @@ import 'package:flutter_application_2/pages/widgets/header_text.dart';
 import 'package:flutter_application_2/pages/widgets/custom_text_field.dart';
 import 'package:flutter_application_2/repositories/auth/login_repository.dart';
 import 'package:flutter_application_2/repositories/category/category_repository.dart';
-import 'package:flutter_application_2/services/auth/login_api.dart';
-import 'package:flutter_application_2/services/category/category_api.dart';
+import 'package:flutter_application_2/services/auth/login_service.dart';
+import 'package:flutter_application_2/services/category/category_service.dart';
 import 'package:flutter_application_2/shared/shared.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_application_2/pages/components/register_form_sheet.dart';
@@ -20,7 +20,7 @@ String? cachedEmailError;
 String? cachedPasswordError;
 
 void showLoginFormSheet(BuildContext context) {
-  final LoginApi api = LoginApi();
+  final LoginService api = LoginService();
   final loginRepository = LoginRepository(api: api);
 
   showModalBottomSheet(
@@ -151,7 +151,7 @@ class _LoginFormSheetState extends State<_LoginFormSheet> {
                   (context) => BlocProvider(
                     create:
                         (_) =>
-                            CategoryBloc(CategoryRepository(api: CategoryApi()))
+                            CategoryBloc(CategoryRepository(api: CategoryService()))
                               ..add(LoadCategory()), // inisialisasi bloc
                     child: const Home(),
                   ),

@@ -4,7 +4,7 @@ import 'package:flutter_application_2/pages/widgets/custom_button.dart';
 import 'package:flutter_application_2/pages/widgets/header_text.dart';
 import 'package:flutter_application_2/pages/widgets/custom_text_field.dart';
 import 'package:flutter_application_2/repositories/auth/register_repository.dart';
-import 'package:flutter_application_2/services/auth/register_api.dart';
+import 'package:flutter_application_2/services/auth/register_service.dart';
 import 'package:flutter_application_2/shared/shared.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_application_2/pages/components/login_form_sheet.dart';
@@ -15,7 +15,7 @@ String cachedPassword = '';
 String cachedPasswordConfirmation = '';
 
 void showRegisterFormSheet(BuildContext context) {
-  final registerRepository = RegisterRepository(api: RegisterApi());
+  final registerRepository = RegisterRepository(api: RegisterService());
 
   showModalBottomSheet(
     isScrollControlled: true,
