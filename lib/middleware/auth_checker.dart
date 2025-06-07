@@ -30,6 +30,8 @@ class _AuthCheckerState extends State<AuthChecker> {
   void _checkAuth() async {
     final token = await TokenStorageUtil.getToken();
 
+    if (!mounted) return; // ❗️Cek mounted setelah await
+
     if (token == null || token.isEmpty) {
       _navigateToWelcome();
       return;
@@ -40,32 +42,35 @@ class _AuthCheckerState extends State<AuthChecker> {
       userBloc.add(LoadUser());
 
       final subscription = userBloc.stream.listen((state) {
+        if (!mounted) return;
+
         if (state is UserLoaded) {
-          if (mounted) {
-            setState(() {
-              _isAuthenticated = true;
-              _isChecking = false;
-            });
-          }
+          setState(() {
+            _isAuthenticated = true;
+            _isChecking = false;
+          });
         } else if (state is UserFailure) {
           _navigateToWelcome();
         }
       });
 
       await Future.delayed(const Duration(seconds: 3));
-      await subscription.cancel();
+
+      if (mounted) {
+        await subscription.cancel();
+      }
     } catch (e) {
-      _navigateToWelcome();
+      if (mounted) _navigateToWelcome();
     }
   }
 
   void _navigateToWelcome() {
-    if (mounted) {
-      setState(() {
-        _isAuthenticated = false;
-        _isChecking = false;
-      });
-    }
+    if (!mounted) return;
+
+    setState(() {
+      _isAuthenticated = false;
+      _isChecking = false;
+    });
   }
 
   @override
