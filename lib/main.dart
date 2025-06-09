@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_2/blocs/auth/forgot_password/bloc/forgot_password_bloc.dart';
 import 'package:flutter_application_2/blocs/auth/logout/bloc/logout_bloc.dart';
 import 'package:flutter_application_2/blocs/user/bloc/user_bloc.dart';
 import 'package:flutter_application_2/middleware/auth_checker.dart';
+import 'package:flutter_application_2/repositories/auth/forgot_password_repository.dart';
 import 'package:flutter_application_2/repositories/auth/logout_repository.dart';
 import 'package:flutter_application_2/repositories/user/user_repository.dart';
+import 'package:flutter_application_2/services/auth/forgot_password_service.dart';
 import 'package:flutter_application_2/services/auth/logout_service.dart';
 import 'package:flutter_application_2/services/auth/user/user_api.dart';
 import 'package:flutter_application_2/utils/token_storage_util.dart';
@@ -42,14 +45,18 @@ class MainApp extends StatelessWidget {
           create: (_) => LoginBloc(LoginRepository(api: LoginService())),
         ),
         BlocProvider<CategoryBloc>(
-          create: (_) => CategoryBloc(CategoryRepository(api: CategoryService())),
+          create:
+              (_) => CategoryBloc(CategoryRepository(api: CategoryService())),
         ),
         BlocProvider<UserBloc>(
           create: (_) => UserBloc(UserRepository(api: UserApi())),
         ),
         BlocProvider<LogoutBloc>(
           create: (_) => LogoutBloc(LogoutRepository(api: LogoutService())),
-        )
+        ),
+        BlocProvider<ForgotPasswordBloc>(
+          create: (_) => ForgotPasswordBloc(ForgotPasswordRepository(api: ForgotPasswordService())),
+        ),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,

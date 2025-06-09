@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_2/blocs/auth/forgot_password/bloc/forgot_password_bloc.dart';
 import 'package:flutter_application_2/blocs/auth/logout/bloc/logout_bloc.dart';
 import 'package:flutter_application_2/blocs/category/bloc/category_bloc.dart';
 import 'package:flutter_application_2/blocs/user/bloc/user_bloc.dart';
@@ -25,7 +26,7 @@ class _HomeState extends State<Home> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('My Homes'),
+        title: Text('My Home'),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 24),
@@ -112,6 +113,34 @@ class _HomeState extends State<Home> {
                   context,
                 ).showSnackBar(SnackBar(content: Text(state.message)));
               } else if (state is LogoutSuccess) {
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (_) => WelcomePages()),
+                  (route) => false,
+                );
+              }
+            },
+          ),
+          BlocListener<ForgotPasswordBloc, ForgotPasswordState>(
+            listener: (context, state) {
+              if (state is ForgotPasswordLoading) {
+                showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (_) => Center(child: CircularProgressIndicator()),
+                );
+              } else {
+                Navigator.of(
+                  context,
+                  rootNavigator: true,
+                ).pop(); // tutup loading
+              }
+
+              if (state is ForgotPasswordFailure) {
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(SnackBar(content: Text(state.message)));
+              } else if (state is ForgotPasswordSuccess) {
                 Navigator.pushAndRemoveUntil(
                   context,
                   MaterialPageRoute(builder: (_) => WelcomePages()),
@@ -208,6 +237,23 @@ class _HomeState extends State<Home> {
                   } else if (state is CategoryFailure) {
                     return Center(child: Text(state.message));
                   } else if (state is CategoryDeleted) {
+                    return Center(child: Text(state.message));
+                  }
+                  return const SizedBox();
+                },
+              ),
+              BlocBuilder<ForgotPasswordBloc, ForgotPasswordState>(
+                builder: (context, state) {
+                  if (state is ForgotPasswordLoading) {
+                    return const Center(child: CircularProgressIndicator());
+                  } else if (state is ForgotPasswordSuccess) {
+                    final forgotPassword = state;
+                    return ListTile(
+                      leading: Icon(Icons.person),
+                      title: Text(forgotPassword.message),
+                      subtitle: Text(forgotPassword.data),
+                    );
+                  } else if (state is ForgotPasswordFailure) {
                     return Center(child: Text(state.message));
                   }
                   return const SizedBox();

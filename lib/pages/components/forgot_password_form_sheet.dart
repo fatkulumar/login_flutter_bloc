@@ -1,28 +1,22 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_2/blocs/auth/login/bloc/login_bloc.dart';
-import 'package:flutter_application_2/pages/components/forgot_password_form_sheet.dart';
-import 'package:flutter_application_2/pages/home.dart';
+import 'package:flutter_application_2/blocs/auth/forgot_password/bloc/forgot_password_bloc.dart';
+import 'package:flutter_application_2/pages/components/login_form_sheet.dart';
 import 'package:flutter_application_2/pages/widgets/custom_button.dart';
 import 'package:flutter_application_2/pages/widgets/header_text.dart';
 import 'package:flutter_application_2/pages/widgets/custom_text_field.dart';
-import 'package:flutter_application_2/repositories/auth/login_repository.dart';
-import 'package:flutter_application_2/repositories/category/category_repository.dart';
-import 'package:flutter_application_2/services/auth/login_service.dart';
-import 'package:flutter_application_2/services/category/category_service.dart';
+import 'package:flutter_application_2/repositories/auth/forgot_password_repository.dart';
+import 'package:flutter_application_2/services/auth/forgot_password_service.dart';
 import 'package:flutter_application_2/shared/shared.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_application_2/pages/components/register_form_sheet.dart';
-import 'package:flutter_application_2/blocs/category/bloc/category_bloc.dart';
 
 // Variabel Global
 String cachedEmail = '';
-String cachedPassword = '';
 String? cachedEmailError; 
-String? cachedPasswordError;
 
-void showLoginFormSheet(BuildContext context) {
-  final LoginService api = LoginService();
-  final loginRepository = LoginRepository(api: api);
+void showForgotPasswordFormSheet(BuildContext context) {
+  final ForgotPasswordService api = ForgotPasswordService();
+  final forgotPasswordRepository = ForgotPasswordRepository(api: api);
 
   showModalBottomSheet(
     isScrollControlled: true,
@@ -30,52 +24,45 @@ void showLoginFormSheet(BuildContext context) {
     context: context,
     builder:
         (context) => BlocProvider(
-          create: (_) => LoginBloc(loginRepository),
-          child: _LoginFormSheet(
+          create: (_) => ForgotPasswordBloc(forgotPasswordRepository),
+          child: _ForgotPasswordFormSheet(
             initialEmail: cachedEmail,
-            initialPassword: cachedPassword,
-            onValueChanged: (email, password) {
+            onValueChanged: (email) {
               cachedEmail = email;
-              cachedPassword = password;
             },
           ),
         ),
   );
 }
 
-class _LoginFormSheet extends StatefulWidget {
+class _ForgotPasswordFormSheet extends StatefulWidget {
   final String initialEmail;
-  final String initialPassword;
-  final void Function(String email, String password)? onValueChanged;
+  final void Function(String email)? onValueChanged;
 
-  const _LoginFormSheet({
+  const _ForgotPasswordFormSheet({
     required this.initialEmail,
-    required this.initialPassword,
     required this.onValueChanged,
   });
 
   @override
-  State<_LoginFormSheet> createState() => _LoginFormSheetState();
+  State<_ForgotPasswordFormSheet> createState() => _ForgotPasswordFormSheetState();
 }
 
-class _LoginFormSheetState extends State<_LoginFormSheet> {
+class _ForgotPasswordFormSheetState extends State<_ForgotPasswordFormSheet> {
   late TextEditingController emailController;
-  late TextEditingController passwordController;
 
   final _formKey = GlobalKey<FormState>();
-  bool _isHiddenPassword = true;
-  bool _isChecked = false;
 
   @override
   void initState() {
     super.initState();
-    emailController = TextEditingController(text: "test@gmail.com");
-    passwordController = TextEditingController(text: "@Test123456");
+    emailController = TextEditingController(text: "fatkulumar@gmail.com");
 
     emailController.addListener(() {
       if (_emailError != null && emailController.text.isNotEmpty) {
         setState(() {
           _emailError = null;
+           cachedEmailError = null;
         });
       }
     });
@@ -84,18 +71,16 @@ class _LoginFormSheetState extends State<_LoginFormSheet> {
   @override
   void dispose() {
     // Simpan data terakhir saat form ditutup
-    widget.onValueChanged?.call(emailController.text, passwordController.text);
+    widget.onValueChanged?.call(emailController.text);
     emailController.dispose();
-    passwordController.dispose();
     super.dispose();
   }
 
-  void _loginSubmit() {
+  void _forgotPasswordSubmit() {
     if (_formKey.currentState?.validate() ?? false) {
-      context.read<LoginBloc>().add(
-        LoginSubmitted(
+      context.read<ForgotPasswordBloc>().add(
+        ForgotPassword(
           email: emailController.text,
-          password: passwordController.text,
         ),
       );
     } else {
@@ -105,37 +90,27 @@ class _LoginFormSheetState extends State<_LoginFormSheet> {
     }
   }
 
-  void _togglePasswordView() {
-    setState(() {
-      _isHiddenPassword = !_isHiddenPassword;
-    });
-  }
-
   String? _emailError;
-  String? _passwordError;
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<LoginBloc, LoginState>(
+    return BlocListener<ForgotPasswordBloc, ForgotPasswordState>(
       listener: (context, state) {
-        if (state is LoginLoading) {
+        if (state is ForgotPasswordLoading) {
           showDialog(
             context: context,
             barrierDismissible: false,
             builder:
                 (context) => const Center(child: CircularProgressIndicator()),
           );
-        } else if (state is LoginSuccess) {
+        } else if (state is ForgotPasswordSuccess) {
           // Reset data global setelah login berhasil
           setState(() {
             cachedEmail = ''; // Reset email yang tersimpan
-            cachedPassword = ''; // Reset password yang tersimpan
 
             cachedEmailError = null;
-            cachedPasswordError = null;
 
             emailController.clear();
-            passwordController.clear();
           });
 
           // Tutup loading dialog dan BottomSheet
@@ -145,36 +120,19 @@ class _LoginFormSheetState extends State<_LoginFormSheet> {
           ScaffoldMessenger.of(
             context,
           ).showSnackBar(SnackBar(content: Text(state.message)));
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder:
-                  (context) => BlocProvider(
-                    create:
-                        (_) =>
-                            CategoryBloc(CategoryRepository(api: CategoryService()))
-                              ..add(LoadCategory()), // inisialisasi bloc
-                    child: const Home(),
-                  ),
-            ),
-          );
-        } else if (state is LoginFailure) {
+        } else if (state is ForgotPasswordFailure) {
           Navigator.pop(context); // tutup loading
           ScaffoldMessenger.of(
             context,
           ).showSnackBar(SnackBar(content: Text(state.message)));
-        } else if (state is LoginFailureWithFields) {
+        } else if (state is ForgotPasswordFailureWithFields) {
           setState(() {
             // Reset semua error dulu
             _emailError = null;
-            _passwordError = null;
             // Cek apakah pesan mengandung error field
             _emailError = state.emailError;
-            _passwordError = state.passwordError;
 
             cachedEmailError = _emailError != null ? state.emailError : null;
-            cachedPasswordError =
-                _passwordError != null ? state.passwordError : null;
           });
         }
       },
@@ -197,7 +155,7 @@ class _LoginFormSheetState extends State<_LoginFormSheet> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const HeaderText(title: "Welcome Back", subtitle: "Login"),
+                  const HeaderText(title: "Helo...", subtitle: "Forgot Password"),
                   const SizedBox(height: 20),
                   CustomTextField(
                     controller: emailController,
@@ -217,62 +175,8 @@ class _LoginFormSheetState extends State<_LoginFormSheet> {
                     },
                   ),
                   const SizedBox(height: 20),
-                  CustomTextField(
-                    obscure: _isHiddenPassword,
-                    controller: passwordController,
-                    label: "Password",
-                    hint: "password",
-                    icon: Icons.lock_outline,
-                    errorText: cachedPasswordError,
-                    suffixIcon: IconButton(
-                      onPressed: _togglePasswordView,
-                      icon: Icon(
-                        _isHiddenPassword
-                            ? Icons.lock_outline
-                            : Icons.lock_open_outlined,
-                      ),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Password tidak boleh kosong';
-                      }
-
-                      final passwordRegex = RegExp(
-                        r'^(?=.*[A-Z])(?=.*\d)(?=.*[!@#\$&*~])[A-Za-z\d!@#\$&*~]{8,}$',
-                      );
-                      if (!passwordRegex.hasMatch(value)) {
-                        return 'Password minimal 8 karakter,\n'
-                            'mengandung huruf kapital, angka, dan simbol (!@#\$&*~)';
-                      }
-
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 20),
                   Row(
                     children: [
-                      Checkbox(
-                        value: _isChecked,
-                        onChanged: (value) {
-                          setState(() {
-                            _isChecked = value ?? false;
-                          });
-                        },
-                      ),
-                      const SizedBox(width: 5),
-                      Expanded(
-                        child: Wrap(
-                          children: [
-                            Text(
-                              "Remember Me",
-                              style: whiteTextStyle.copyWith(
-                                color: primaryColor,
-                                fontSize: 12,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
                       const Spacer(),
                       Expanded(
                         child: Align(
@@ -280,10 +184,10 @@ class _LoginFormSheetState extends State<_LoginFormSheet> {
                           child: TextButton(
                             onPressed: () {
                               Navigator.pop(context);
-                              showForgotPasswordFormSheet(context);
+                              showLoginFormSheet(context);
                             },
                             child: Text(
-                              "Forgot Password?",
+                              "Login?",
                               style: whiteTextStyle.copyWith(
                                 color: primaryColor,
                                 fontSize: 12,
@@ -296,8 +200,8 @@ class _LoginFormSheetState extends State<_LoginFormSheet> {
                   ),
                   const SizedBox(height: 20),
                   CustomButton(
-                    text: "Login",
-                    onPressed: _loginSubmit,
+                    text: "Kirim",
+                    onPressed: _forgotPasswordSubmit,
                     backgroundColor: Colors.blue,
                     textColor: Colors.white,
                   ),
